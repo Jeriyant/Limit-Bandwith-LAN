@@ -11,9 +11,9 @@ Cara Limit Bandwith LAN Berdasarkan IP Secara Otomatis
 /queue simple add name=3.LIMITER-LAN parent=0.MASTER-BANDWITH queue=pcq-upload-default/pcq-download-default target=Bridge
 ```
 ## Script Otomatis Menambahkan Queue
-###1. Silakan Modifikasi Sesuai Kebutuhan Anda, Pada [find name="DHCP-Server"] sesuaikan dengan nama DHCP Server Anda
-###2. Pada parent=\"3.LIMITER-LAN\" sesuaikan dengan nama Induk Simple Queue Anda
-###3. Pada limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120 Sesuaikan Dengan Limit yang anda Mau
+### 1. Silakan Modifikasi Sesuai Kebutuhan Anda, Pada [find name="DHCP-Server"] sesuaikan dengan nama DHCP Server Anda
+### 2. Pada parent=\"3.LIMITER-LAN\" sesuaikan dengan nama Induk Simple Queue Anda
+### 3. Pada limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120 Sesuaikan Dengan Limit yang anda Mau
 ```
 /ip dhcp-server set [find name="DHCP-Server"] lease-script=":if (\$leaseBound = 1) do={\r\
     \n    :local hostname \$\"lease-hostname\"\r\
