@@ -1,5 +1,5 @@
 
-# Limit Bandwidth LAN
+# Limit Bandwidth Jaringan LAN
 Cara Membatasi Bandwidth LAN Secara Otomatis Berdasarkan IP.
 
 ## Konfigurasi Utama
