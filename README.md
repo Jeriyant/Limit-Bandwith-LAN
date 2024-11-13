@@ -1,5 +1,5 @@
 
-# LIMIT OTOMATIS JARINGAN LAN
+# LIMIT BANDWITH LAN DENGAN AUTO SIMPLE QUEUE
 Cara Membatasi Bandwidth LAN Secara Otomatis Berdasarkan IP.
 
 ## Konfigurasi Utama
