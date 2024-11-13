@@ -1,50 +1,64 @@
-# Limit-Bandwith-LAN
-Cara Limit Bandwith LAN Berdasarkan IP Secara Otomatis
 
-# Buat Simple Queue Sebagai Induk Utama atau Master
-## Limiter Induk
+# Limit Bandwidth LAN
+Cara Membatasi Bandwidth LAN Secara Otomatis Berdasarkan IP.
+
+## Konfigurasi Utama
+### 1. Buat Simple Queue Sebagai Induk Utama (Master)
+Gunakan perintah berikut untuk membuat limiter utama:
+```shell
+/queue simple add name=0.MASTER-BANDWIDTH queue=pcq-upload-default/pcq-download-default target=Bridge
 ```
-/queue simple add name=0.MASTER-BANDWITH queue=pcq-upload-default/pcq-download-default target=Bridge
+
+### 2. Buat Simple Queue untuk LAN/Hotspot
+Gunakan perintah berikut untuk membuat limiter untuk LAN atau Hotspot:
+```shell
+/queue simple add name=3.LIMITER-LAN parent=0.MASTER-BANDWIDTH queue=pcq-upload-default/pcq-download-default target=Bridge
 ```
-## Limiter LAN/Hotspot
+
+## Script Otomatis untuk Menambahkan Queue
+### Petunjuk Pengaturan
+1. **Modifikasi sesuai kebutuhan**:
+   - Pada `find name="DHCP-Server"` sesuaikan dengan nama DHCP Server Anda.
+   - Pada `parent="3.LIMITER-LAN"` sesuaikan dengan nama Induk Simple Queue yang Anda buat.
+   - Pada konfigurasi `limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120` sesuaikan dengan limit bandwidth yang Anda inginkan.
+
+### Script
+Berikut adalah script lengkap untuk menambahkan queue secara otomatis:
+```shell
+/ip dhcp-server set [find name="DHCP-Server"] lease-script=":if (\$leaseBound = 1) do={
+    :local hostname \$\"lease-hostname\"
+    :local ip \$\"leaseActIP\"
+    :local queuename (\"Queue_\" . \$hostname)
+
+    # Cek apakah hostname kosong, jika kosong gunakan IP
+    :if (\$hostname = \"\") do={
+        :set queuename (\"Queue_\" . \$ip)
+    }
+
+    # Buat Simple Queue dengan Parent \"3.LIMITER-LAN\" dan konfigurasi limit-at serta burst
+    /queue simple add name=\$queuename target=\$ip limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120 parent=\"3.LIMITER-LAN\"
+} else={
+    :local hostname \$\"lease-hostname\"
+    :local ip \$\"leaseActIP\"
+    :local queuename (\"Queue_\" . \$hostname)
+
+    # Cek apakah hostname kosong, jika kosong gunakan IP
+    :if (\$hostname = \"\") do={
+        :set queuename (\"Queue_\" . \$ip)
+    }
+
+    # Hapus Simple Queue jika perangkat terputus
+    /queue simple remove [find name=\$queuename]
+}
+"
 ```
-/queue simple add name=3.LIMITER-LAN parent=0.MASTER-BANDWITH queue=pcq-upload-default/pcq-download-default target=Bridge
-```
-## Script Otomatis Menambahkan Queue
-1. Silakan Modifikasi Sesuai Kebutuhan Anda, Pada [find name="DHCP-Server"] sesuaikan dengan nama DHCP Server Anda
-2. Pada parent=\"3.LIMITER-LAN\" sesuaikan dengan nama Induk Simple Queue Anda
-3. Pada limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120 Sesuaikan Dengan Limit yang anda Mau
-```
-/ip dhcp-server set [find name="DHCP-Server"] lease-script=":if (\$leaseBound = 1) do={\r\
-    \n    :local hostname \$\"lease-hostname\"\r\
-    \n    :local ip \$\"leaseActIP\"\r\
-    \n    :local queuename (\"Queue_\" . \$hostname)\r\
-    \n    \r\
-    \n    # Cek apakah hostname kosong, jika kosong gunakan IP\r\
-    \n    :if (\$hostname = \"\") do={\r\
-    \n        :set queuename (\"Queue_\" . \$ip)\r\
-    \n    }\r\
-    \n    \r\
-    \n    # Buat Simple Queue dengan Parent \"3.LIMITER-LAN\" dan konfigurasi limit-at serta Burst\r\
-    \n    /queue simple add name=\$queuename target=\$ip limit-at=1M/1M max-limit=2M/2M burst-limit=6M/10M burst-threshold=2M/2M burst-time=120/120 parent=\"3.LIMITER-LAN\"\r\
-    \n} else={\r\
-    \n    :local hostname \$\"lease-hostname\"\r\
-    \n    :local ip \$\"leaseActIP\"\r\
-    \n    :local queuename (\"Queue_\" . \$hostname)\r\
-    \n    \r\
-    \n    # Cek apakah hostname kosong, jika kosong gunakan IP\r\
-    \n    :if (\$hostname = \"\") do={\r\
-    \n        :set queuename (\"Queue_\" . \$ip)\r\
-    \n    }\r\
-    \n    \r\
-    \n    # Hapus Simple Queue jika perangkat terputus\r\
-    \n    /queue simple remove [find name=\$queuename]\r\
-    \n}\r\
-    \n"
-```
-## Setting Leases Time Jangan Terlalu Lama Agar Segera Update Untuk Queue Limitnya
+
+## Pengaturan Lease Time
+Untuk memastikan queue limit diperbarui dengan cepat, atur waktu sewa (lease-time) DHCP agar tidak terlalu lama:
+```shell
 /ip dhcp-server set [find name="DHCP-Server"] lease-time=00:01:00
+```
 
-## Sampai Disini Anda Dapat Mengujinya
-Jika Ada Perangkat yang baru terhubung akan otomatis menambahkan queue di simple queue
-Jika perangkat tersebut terputus dari jaringan dalam hal ini (1 Menit setelah terputus) maka simple queue yang dibuat otomatis seharusnya akan terhapus dengan sendirinya
+## Uji Coba
+1. Jika ada perangkat baru yang terhubung, simple queue akan dibuat secara otomatis.
+2. Jika perangkat tersebut terputus dari jaringan (1 menit setelah terputus), maka simple queue yang dibuat akan otomatis dihapus.
