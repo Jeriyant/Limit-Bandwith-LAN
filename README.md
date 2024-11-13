@@ -44,3 +44,7 @@ Cara Limit Bandwith LAN Berdasarkan IP Secara Otomatis
 ```
 ## Setting Leases Time Jangan Terlalu Lama Agar Segera Update Untuk Queue Limitnya
 /ip dhcp-server set [find name="DHCP-Server"] lease-time=00:01:00
+
+## Sampai Disini Anda Dapat Mengujinya
+Jika Ada Perangkat yang baru terhubung akan otomatis menambahkan queue di simple queue
+Jika perangkat tersebut terputus dari jaringan dalam hal ini (1 Menit setelah terputus) maka simple queue yang dibuat otomatis seharusnya akan terhapus dengan sendirinya
